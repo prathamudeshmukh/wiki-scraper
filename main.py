@@ -3,6 +3,7 @@ import sys
 import requests
 import bs4
 import datetime
+import hashlib
 
 from google.cloud import firestore
 
@@ -51,10 +52,23 @@ def get_cite_link_for_event(event, wiki):
 def get_datetime(event_date):
     date = datetime.datetime.strptime(event_date, '%m/%d/%Y').date()
     return datetime.datetime.combine(date, datetime.time())
+
+def get_year(year):
+    year = sanitize_text(year)
+    if (year.find('BC') >= 0) :
+        return None
+    year = sanitize_text(year.strip('AD'))
+    if len(year) < 4:
+        return year.rjust(4,'0')
+    return year
+
+def get_uniq_id(string):
+    return hashlib.md5(string.encode('utf-8')).hexdigest()
+
 #############################################################################
 
-start_date = datetime.date(2000, 1, 2)
-end_date = datetime.date(2000, 2, 2)
+start_date = datetime.date(2000, 1, 1)
+end_date = datetime.date(2000, 1, 2)
 keyfile = 'history-47b77-b615bd2b5b7f.json'
 db = firestore.Client.from_service_account_json(keyfile)
 events_collection = db.collection('events')
@@ -76,8 +90,8 @@ for date in get_date_range(start_date,end_date):
 
         eventText = event.getText().split(" – ")
         day = date.strftime('%d')
-        year = sanitize_text(eventText[0])
-        if (year.rfind('AD') >= 0):
+        year = get_year(eventText[0])
+        if (year == None) :
             continue
         month = date.strftime('%m')
         event_desc = sanitize_text(eventText[1])
@@ -89,7 +103,8 @@ for date in get_date_range(start_date,end_date):
             'event_date': event_date,
             'wiki_cite_link': wiki_cite_link
         }
-        events_collection.add(event_obj)
+        uniq_doc_id = str(get_uniq_id(event_desc))
+        events_collection.document(uniq_doc_id).set(event_obj)
         events += 1
 
     print(str(events) + ' events stored')
