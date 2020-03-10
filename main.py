@@ -85,15 +85,19 @@ def get_all_entity(entities, property):
     for entity in entities:
         data.append(entity[property])
     return data
-        
+
+def get_entities(event_desc):
+    request_body = get_google_api_body(event_desc)
+    response = requests.post(google_analyze_entities_url, json=request_body)
+    entities = response.json()['entities']
+    return entities
+
 def fetch_and_save_keywords():
     db_collection = db.collection('events')
     events_collection = db_collection.order_by('event_date').stream()
     for event_doc in events_collection:
         event_desc = event_doc.to_dict()['description']
-        request_body = get_google_api_body(event_desc)
-        response = requests.post(google_analyze_entities_url, json=request_body)
-        entities = response.json()['entities']
+        entities = get_entities(event_desc)
         if (len(entities) > 0) :
             doc_ref = db_collection.document(event_doc.id)
             entity_names = get_all_entity(entities,'name')
