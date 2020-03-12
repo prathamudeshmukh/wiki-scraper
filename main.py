@@ -4,7 +4,8 @@ import requests
 import bs4
 import datetime
 import hashlib
-
+from util import Util
+from encyclopedia_scraper import EncyclopediaScraper
 from google.cloud import firestore
 
 keyfile = 'history-47b77-b615bd2b5b7f.json'
@@ -12,15 +13,8 @@ db = firestore.Client.from_service_account_json(keyfile)
 
 google_analyze_entities_url = 'https://language.googleapis.com/v1beta2/documents:analyzeEntities?key=AIzaSyBMRqcfiOOFgRxgNiQW39i7JVdyx8GYioo'
 
-def get_date_range(start_date, end_date):
-    for ordinal in range(start_date.toordinal(), end_date.toordinal()):
-        yield datetime.date.fromordinal(ordinal)
-
 def get_day_for_wiki(date):
     return date.strftime("%B_%-d")
-
-def sanitize_text(text):
-    return str(text).strip('\n').strip(' ')
 
 def is_empty(text):
     return len(text) == 0
@@ -59,10 +53,10 @@ def get_datetime(event_date):
     return datetime.datetime.combine(date, datetime.time())
 
 def get_year(year):
-    year = sanitize_text(year)
+    year = Util.sanitize_text(year)
     if (year.find('BC') >= 0) :
         return None
-    year = sanitize_text(year.strip('AD'))
+    year = Util.sanitize_text(year.strip('AD'))
     if len(year) < 4:
         return year.rjust(4,'0')
     return year
@@ -106,12 +100,12 @@ def fetch_and_save_keywords():
             })
     
 
-def fetch_from_wiki_save_to_firestore():
+def fetch_from_wiki_save_to_firestore(start_date, end_date):
     start_date = datetime.date(2000, 1, 1)
     end_date = datetime.date(2000, 1, 2)
     events_collection = db.collection('events')
 
-    for date in get_date_range(start_date,end_date):
+    for date in Util.get_date_range(start_date,end_date):
         url = 'https://en.wikipedia.org/wiki/' + (get_day_for_wiki(date))
         print('Fetching wiki for :' + url)
         res = requests.get(url)
@@ -147,4 +141,8 @@ def fetch_from_wiki_save_to_firestore():
 
         print(str(events) + ' events stored')
 
-fetch_and_save_keywords()
+# fetch_and_save_keywords()
+start_date = datetime.date(2000, 1, 3)
+end_date = datetime.date(2000, 1, 4)
+scraper = EncyclopediaScraper()
+scraper.fetch_and_save(start_date,end_date)
