@@ -8,9 +8,7 @@ from util import Util
 from encyclopedia_scraper import EncyclopediaScraper
 from google_entities import GoogleEntities
 from google.cloud import firestore
-
-keyfile = 'history-47b77-b615bd2b5b7f.json'
-db = firestore.Client.from_service_account_json(keyfile)
+from storage import Storage
 
 google_analyze_entities_url = 'https://language.googleapis.com/v1beta2/documents:analyzeEntities?key=AIzaSyBMRqcfiOOFgRxgNiQW39i7JVdyx8GYioo'
 
@@ -66,20 +64,20 @@ def get_uniq_id(string):
     return hashlib.md5(string.encode('utf-8')).hexdigest()
 
 def fetch_and_save_keywords():
-    db_collection = db.collection('events')
-    events_collection = db_collection.order_by('event_date').stream()
+    storage = Storage()
+    events_collection = storage.get_order_by('event_date')
     for event_doc in events_collection:
         event_desc = event_doc.to_dict()['description']
         entities = GoogleEntities(event_desc).get_entities('name')
-        doc_ref = db_collection.document(event_doc.id)
-        doc_ref.update({
+        update_doc = {
             'entities': entities
-        })
+        }
+        storage.update(event_doc.id, update_doc)
 
 def fetch_from_wiki_save_to_firestore(start_date, end_date):
     start_date = datetime.date(2000, 1, 1)
     end_date = datetime.date(2000, 1, 2)
-    events_collection = db.collection('events')
+    storage = Storage()
 
     for date in Util.get_date_range(start_date,end_date):
         url = 'https://en.wikipedia.org/wiki/' + (get_day_for_wiki(date))
@@ -111,8 +109,7 @@ def fetch_from_wiki_save_to_firestore(start_date, end_date):
                 'event_date': event_date,
                 'wiki_cite_link': wiki_cite_link
             }
-            uniq_doc_id = str(get_uniq_id(event_desc))
-            events_collection.document(uniq_doc_id).set(event_obj)
+            storage.save_doc(event_obj)
             events += 1
 
         print(str(events) + ' events stored')
