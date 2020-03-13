@@ -126,7 +126,7 @@ def fetch_from_wiki_save_to_firestore(start_date, end_date):
             if (year == None) :
                 continue
             month = date.strftime('%m')
-            event_desc = sanitize_text(eventText[1])
+            event_desc = Util.sanitize_text(eventText[1])
             event_date = month+'/'+day+'/'+year
             event_date = get_datetime(event_date)
             event_obj = {

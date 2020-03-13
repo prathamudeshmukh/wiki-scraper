@@ -11,9 +11,15 @@ class EncyclopediaScraper(object):
         featured_event = wiki.select('.md-history-featured-date')[0].getText()
         featured_event = Util.sanitize_text(featured_event)
         event_description = wiki.select('.md-history-featured-content .description')[0]
-        print('event_description' + event_description)
-        event_list = []
+        event_list = {}
         event_list[featured_event] = event_description
+
+        events = wiki.select('.md-history-event')
+        for event in events:
+            event_date = event.select('.md-history-event-date')[0].getText()
+            event_description = event.select('.description')[0]
+            event_list[event_date] = event_description
+        
         return event_list
 
     def fetch_and_save(self, start_date, end_date):
@@ -24,4 +30,5 @@ class EncyclopediaScraper(object):
             res.raise_for_status()
 
             wiki = bs4.BeautifulSoup(res.text, "lxml")
-            print(self.get_events_list(wiki))
+            events_list = self.get_events_list(wiki)
+            print(events_list)
