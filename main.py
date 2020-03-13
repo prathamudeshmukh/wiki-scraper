@@ -6,6 +6,7 @@ import datetime
 import hashlib
 from util import Util
 from encyclopedia_scraper import EncyclopediaScraper
+from google_entities import GoogleEntities
 from google.cloud import firestore
 
 keyfile = 'history-47b77-b615bd2b5b7f.json'
@@ -64,41 +65,16 @@ def get_year(year):
 def get_uniq_id(string):
     return hashlib.md5(string.encode('utf-8')).hexdigest()
 
-def get_google_api_body(description):
-    return {
-        "document": {
-            "type": "PLAIN_TEXT",
-            "language": "en",
-            "content": description
-        },
-        "encodingType": "UTF8"
-    }
-
-def get_all_entity(entities, property):
-    data = []
-    for entity in entities:
-        data.append(entity[property])
-    return data
-
-def get_entities(event_desc):
-    request_body = get_google_api_body(event_desc)
-    response = requests.post(google_analyze_entities_url, json=request_body)
-    entities = response.json()['entities']
-    return entities
-
 def fetch_and_save_keywords():
     db_collection = db.collection('events')
     events_collection = db_collection.order_by('event_date').stream()
     for event_doc in events_collection:
         event_desc = event_doc.to_dict()['description']
-        entities = get_entities(event_desc)
-        if (len(entities) > 0) :
-            doc_ref = db_collection.document(event_doc.id)
-            entity_names = get_all_entity(entities,'name')
-            doc_ref.update({
-                'entities': entity_names
-            })
-    
+        entities = GoogleEntities(event_desc).get_entities('name')
+        doc_ref = db_collection.document(event_doc.id)
+        doc_ref.update({
+            'entities': entities
+        })
 
 def fetch_from_wiki_save_to_firestore(start_date, end_date):
     start_date = datetime.date(2000, 1, 1)
@@ -141,8 +117,8 @@ def fetch_from_wiki_save_to_firestore(start_date, end_date):
 
         print(str(events) + ' events stored')
 
-# fetch_and_save_keywords()
+fetch_and_save_keywords()
 start_date = datetime.date(2000, 1, 3)
 end_date = datetime.date(2000, 1, 4)
-scraper = EncyclopediaScraper()
-scraper.fetch_and_save(start_date,end_date)
+# scraper = EncyclopediaScraper()
+# scraper.fetch_and_save(start_date,end_date)
