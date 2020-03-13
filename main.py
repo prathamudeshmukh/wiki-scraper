@@ -114,8 +114,8 @@ def fetch_from_wiki_save_to_firestore(start_date, end_date):
 
         print(str(events) + ' events stored')
 
-fetch_and_save_keywords()
-start_date = datetime.date(2000, 1, 3)
+# fetch_and_save_keywords()
+start_date = datetime.date(2000, 1, 1)
 end_date = datetime.date(2000, 1, 4)
-# scraper = EncyclopediaScraper()
-# scraper.fetch_and_save(start_date,end_date)
+scraper = EncyclopediaScraper()
+scraper.fetch_and_save(start_date,end_date)

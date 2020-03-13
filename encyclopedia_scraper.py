@@ -3,6 +3,7 @@ import requests
 import bs4
 import datetime
 from google_entities import GoogleEntities
+from storage import Storage
 
 class EncyclopediaScraper(object):
 
@@ -29,9 +30,14 @@ class EncyclopediaScraper(object):
         if len(buttons) > 0:
             for button in buttons:
                 button.extract()
-        return event.getText()
+        return Util.sanitize_text(event.getText())
+
+    def get_db_event_date(self, event_date):
+        event_date = datetime.datetime.strptime(event_date, '%m/%d/%Y').date()
+        return datetime.datetime.combine(event_date, datetime.time())
 
     def fetch_and_save(self, start_date, end_date):
+        storage = Storage()
         for date in Util.get_date_range(start_date,end_date):
             url = 'https://www.britannica.com/on-this-day/' + (self.get_day(date))
             print('Fetching wiki for :' + url)
@@ -44,9 +50,9 @@ class EncyclopediaScraper(object):
             for year in events_list:
                 day = date.strftime('%d')
                 month = date.strftime('%m')
-                event_date = datetime.datetime.strptime(month+'/'+day+'/'+year, '%m/%d/%Y').date()
+                event_date = month+'/'+day+'/'+year
+                event_date = self.get_db_event_date(event_date)
                 event_desc = self.get_event_text(events_list[year])
-                print(event_desc)
                 wiki_cite_link = [url]
                 google_entities = GoogleEntities(event_desc).get_entities('name')
                 event_obj = {
@@ -56,4 +62,4 @@ class EncyclopediaScraper(object):
                     'wiki_cite_link': wiki_cite_link,
                     'entities': google_entities
                 }
-                print(event_obj)
+                storage.save_doc(event_obj)
