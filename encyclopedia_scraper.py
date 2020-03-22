@@ -50,7 +50,8 @@ class EncyclopediaScraper:
 
             wiki = bs4.BeautifulSoup(res.text, "lxml")
             events_list = self.get_events_list(wiki)
-
+            print(str(len(events_list)) + ' events found in encyclo')
+            events_to_save = []
             for year in events_list:
                 day = date.strftime('%d')
                 month = date.strftime('%m')
@@ -66,4 +67,5 @@ class EncyclopediaScraper:
                     'wiki_cite_link': wiki_cite_link,
                     'entities': google_entities
                 }
-                storage.save_doc(event_obj)
+                events_to_save.append(event_obj)
+            storage.save_bulk_docs(events_to_save)

@@ -3,6 +3,7 @@ import datetime
 import bs4
 import requests
 
+from google_entities import GoogleEntities
 from storage import Storage
 from util import Util
 
@@ -76,7 +77,7 @@ class WikipediaScraper(object):
 
             wiki = bs4.BeautifulSoup(res.text, "lxml")
             events_list = WikipediaScraper.get_events_list(wiki)
-            events = 0
+            events_to_save = []
             print(str(len(events_list)) + ' events found in wiki')
             for event in events_list:
 
@@ -86,19 +87,19 @@ class WikipediaScraper(object):
                 eventText = event.getText().split(" – ")
                 day = date.strftime('%d')
                 year = WikipediaScraper.get_year(eventText[0])
-                if (year == None):
+                if year is None:
                     continue
                 month = date.strftime('%m')
                 event_desc = Util.sanitize_text(eventText[1])
                 event_date = month + '/' + day + '/' + year
                 event_date = WikipediaScraper.get_datetime(event_date)
+                google_entities = GoogleEntities(event_desc).get_entities('name')
                 event_obj = {
                     'year': int(year),
                     'description': event_desc,
                     'event_date': event_date,
-                    'wiki_cite_link': wiki_cite_link
+                    'wiki_cite_link': wiki_cite_link,
+                    'entities': google_entities
                 }
-                storage.save_doc(event_obj)
-                events += 1
-
-            print(str(events) + ' events stored')
+                events_to_save.append(event_obj)
+            storage.save_bulk_docs(events_to_save)

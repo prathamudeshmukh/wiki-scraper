@@ -4,6 +4,7 @@ import datetime
 from google_entities import GoogleEntities
 from storage import Storage
 from wikipedia_scraper import WikipediaScraper
+from encyclopedia_scraper import EncyclopediaScraper
 
 def fetch_and_save_keywords():
     storage = Storage()
@@ -19,7 +20,7 @@ def fetch_and_save_keywords():
 
 # fetch_and_save_keywords()
 start_date = datetime.date(2000, 1, 1)
-end_date = datetime.date(2000, 1, 4)
+end_date = datetime.date(2000, 1, 2)
 # scraper = EncyclopediaScraper()
 scraper = WikipediaScraper()
 scraper.fetch_and_save(start_date, end_date)
