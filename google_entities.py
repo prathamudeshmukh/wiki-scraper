@@ -1,5 +1,6 @@
 import requests
 
+
 class GoogleEntities(object):
     event_desc = ''
     google_analyze_entities_url = 'https://language.googleapis.com/v1beta2/documents:analyzeEntities?key=AIzaSyBMRqcfiOOFgRxgNiQW39i7JVdyx8GYioo'

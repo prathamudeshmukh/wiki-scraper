@@ -1,12 +1,9 @@
 #!/usr/bin/python3
-import sys
 import datetime
-from encyclopedia_scraper import EncyclopediaScraper
-from wikipedia_scraper import WikipediaScraper
+
 from google_entities import GoogleEntities
 from storage import Storage
-
-google_analyze_entities_url = 'https://language.googleapis.com/v1beta2/documents:analyzeEntities?key=AIzaSyBMRqcfiOOFgRxgNiQW39i7JVdyx8GYioo'
+from wikipedia_scraper import WikipediaScraper
 
 def fetch_and_save_keywords():
     storage = Storage()
@@ -19,9 +16,10 @@ def fetch_and_save_keywords():
         }
         storage.update(event_doc.id, update_doc)
 
+
 # fetch_and_save_keywords()
 start_date = datetime.date(2000, 1, 1)
 end_date = datetime.date(2000, 1, 4)
 # scraper = EncyclopediaScraper()
 scraper = WikipediaScraper()
-scraper.fetch_and_save(start_date,end_date)
+scraper.fetch_and_save(start_date, end_date)
