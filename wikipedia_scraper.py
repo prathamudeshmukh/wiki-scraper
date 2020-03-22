@@ -63,8 +63,6 @@ class WikipediaScraper(object):
         return year
     
     def fetch_and_save(self, start_date, end_date):
-        start_date = datetime.date(2000, 1, 1)
-        end_date = datetime.date(2000, 1, 2)
         storage = Storage()
 
         for date in Util.get_date_range(start_date,end_date):

@@ -1,10 +1,6 @@
 #!/usr/bin/python3
 import sys
-import requests
-import bs4
 import datetime
-import hashlib
-from util import Util
 from encyclopedia_scraper import EncyclopediaScraper
 from wikipedia_scraper import WikipediaScraper
 from google_entities import GoogleEntities
