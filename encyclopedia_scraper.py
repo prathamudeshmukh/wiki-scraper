@@ -40,7 +40,7 @@ class EncyclopediaScraper(object):
         storage = Storage()
         for date in Util.get_date_range(start_date,end_date):
             url = 'https://www.britannica.com/on-this-day/' + (self.get_day(date))
-            print('Fetching wiki for :' + url)
+            print('Fetching encyclopaedia for :' + url)
             res = requests.get(url)
             res.raise_for_status()
 
